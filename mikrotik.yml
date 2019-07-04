@@ -1,0 +1,43 @@
+---
+- name: Backup Config file and Install Updates
+  hosts: anatik
+  connection: network_cli
+  remote_user: ana
+  gather_facts: false
+  tasks:
+    - name: backup
+      routeros_command: 
+        commands:
+          - /export file=myconfig.cfg verbose
+      register: is_backuped
+    - debug: var=is_backuped.stdout_lines
+    - name: check for updates
+      routeros_command:
+        commands: 
+          - /system package update check-for-updates
+      register: check_updates
+    - debug: var=check_updates.stdout
+
+    - name: download latest package
+      routeros_command:
+        commands: system package update download
+      when: '"New version is available" in check_updates.stdout'
+      register: download
+    - debug: var=download.stdout_lines
+    - name: run multiple commands on remote nodes
+      routeros_command:
+         commands:
+           - /system routerboard print
+           - /system identity print
+      register: verify
+    - debug: var=verify.stdout_lines
+    - name: run command and check to see if output contains routeros
+      routeros_command:
+        commands: /system resource print
+        wait_for: result[0] contains MikroTik
+      register: resource
+    - debug: var=resource.stdout_lines
+    - name: reboot the router
+      routeros_command:
+           commands: /system scheduler add name=REBOOT interval=5s on-event="/system scheduler remove REBOOT;/system reboot"
+      tags: reboot

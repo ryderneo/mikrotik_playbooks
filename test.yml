@@ -1,0 +1,102 @@
+---
+- name: VPLS Configuration
+  hosts: routers
+  tasks:
+    - name: create loopback interface
+      routeros_command: 
+        commands:
+          - interface bridge add name=Loopback1
+      register: loopback
+      tags: loopback
+    - name: Assign IP to loopback1
+      routeros_command:
+        commands: 
+          - /ip address add interface=Loopback1 address={{ loopback_address }}
+      register: loop_back address
+      tags: assign_loopback
+    - name: Assign IP addresses for ethernet 2 and ethernet 3
+      routeros_command:
+        commands: 
+           - /ip address add interface=ether2 address={{ eth2_address }}
+           - /ip address add interface=ether3 address={{ eth3_address }}
+      register: interface_address
+      tags: assign_interface
+    - debug: var=interface_address.stdout_lines
+      tags: assign_interface
+    - name: Set router_id for eacher routers
+      routeros_command:
+         commands:
+           - / routing ospf instance set numbers=0 router-id={{ router_id }}
+      register: router_id
+      tags: router_id
+    - debug: var=router_id.stdout_lines
+      tags: router_id
+    - name: Add networks to OSPF
+      routeros_command:
+         commands:
+             - /routing ospf network add network={{ ospf_network1 }} area=backbone
+             - /routing ospf network add network={{ ospf_network2 }} area=backbone
+             - /routing ospf network add network={{ loopback_network }} area=backbone
+      register: ospf_networks
+      tags: ospf_networks
+    - debug: var=ospf_networks.stdout_lines
+      tags: ospf_networks
+    - name: Set router_id for eacher routers
+      routeros_command:
+         commands:
+           - / routing ospf instance set numbers=0 router-id={{ router_id }}
+      register: router_id
+      tags: router_id
+    - debug: var=router_id.stdout_lines
+      tags: router_id
+    - name: verify OSPF is successful
+      routeros_command:
+        commands: /ip route print
+      register: verify
+      tags: verify
+    - debug: var=verify.stdout_lines
+      tags: verify
+    - name: Set MPLS id 
+      routeros_command:
+         commands: /mpls ldp set enabled=yes transport-address={{ loopback_address }} lsr-id={{ loopback_address }}
+      register: mpls_id
+      tags: mpls_id
+    - debug: var=mpls_id.stdout_lines
+      tags: mpls_id
+    - name: MPLS enable interface
+      routeros_command:
+          commands: 
+            - /mpls ldp interface add interface=ether2
+            - /mpls ldp interface add interface=ether3
+            - /mpls ldp interface add interface=Loopback1
+      register: mpls_enable
+      tags: mpls_enable
+    - debug: var=mpls_enable.stdout_lines
+      tags: mpls_enable 
+    - name: verify_mpls
+      routeros_command:
+           commands:
+                - /mpls ldp neighbor print
+                - /mpls forwarding-table print
+      register: verify_mpls
+      tags: verify_mpls
+    - debug: var=verify_mpls.stdout_lines
+      tags: verify_mpls
+    - name: create vpls tunnel for ANA1:ANA4 & ANA2:ANA3
+      routeros_command:
+             commands:
+                  - /interface vpls add name=A1toA4 remote-peer={{ remote_loopback }} vpls-id={{ vpls_id }} disabled=no
+      register: vpls_tunnel
+      tags: vpls_tunnel
+    - debug: var=vpls_tunnel.stdout_lines
+      tags: vpls_tunnel
+    - name: Create a bridge interface for Customers
+      routeros_command:
+              commands:
+                  - /interface bridge add name=Customer
+                  - /interface bridge port add interface=ether5 bridge=Customer
+                  - /interface bridge port add interface=A1toA4 bridge=Customer
+      register: vpls_bridge
+      tags: vpls_bridge
+    - debug: var=vpls_bridge.stdout_lines
+      tags: vpls_bridge  

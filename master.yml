@@ -1,0 +1,5 @@
+---
+- name: Backup First
+  import_playbook: backup.yml
+- name: Remove Default Admin
+  import_playbook: remove_admin.yml

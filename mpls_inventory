@@ -1,0 +1,21 @@
+[routeros:children]
+routers
+switches
+
+[routeros:vars]
+ansible_connection=network_cli
+ansible_network_os=routeros
+ansible_user=MUM
+ansible_password=123456
+ansible_become=yes
+ansible_command_timeout=600
+
+
+[routers]
+ANA1  loopback_address=1.1.1.1 eth2_address=12.0.0.1/24 eth3_address=13.0.0.1/24 ospf_network1=12.0.0.0/24 ospf_network2=13.0.0.0/24 loopback_network=1.1.1.1/32 router_id=1.1.1.1 remote_loopback=4.4.4.4 vpls_id=1:4
+ANA2  loopback_address=2.2.2.2 eth2_address=12.0.0.2/24 eth3_address=24.0.0.2/24 ospf_network1=12.0.0.0/24 ospf_network2=24.0.0.0/24 loopback_network=2.2.2.2/32 router_id=2.2.2.2 remote_loopback=3.3.3.3 vpls_id=2:3
+ANA3  loopback_address=3.3.3.3 eth3_address=13.0.0.3/24 eth2_address=34.0.0.3/24 ospf_network1=13.0.0.0/24 ospf_network2=34.0.0.0/24 loopback_network=3.3.3.3/32 router_id=3.3.3.3 remote_loopback=2.2.2.2 vpls_id=2:3
+ANA4  loopback_address=4.4.4.4 eth2_address=34.0.0.4/24 eth3_address=24.0.0.4/24 ospf_network1=24.0.0.0/24 ospf_network2=34.0.0.0/24 loopback_network=4.4.4.4/32 router_id=4.4.4.4 remote_loopback=1.1.1.1 vpls_id=1:4
+
+[switches]
+192.168.1.253

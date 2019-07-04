@@ -1,0 +1,22 @@
+---
+- hosts: routers
+  tasks:
+    - name: add default firewall
+      routeros_command:
+            commands:
+                - /ip firewall filter remove number=0,1,2,3
+                - /ip firewall filter add action=accept chain=input comment="default configuration" connection-state=established,related
+                - /ip firewall filter add action=accept chain=input src-address-list=allowed_to_router
+                - /ip firewall filter add action=accept chain=input protocol=icmp
+                - /ip firewall filter add action=drop chain=input disabled=yes
+                - /ip firewall address-list add address=192.168.88.2-192.168.88.254 list=allowed_to_router
+    - name: verify the results
+      routeros_command:
+             commands:
+                - /ip firewall filter print
+      register: verify
+      tags: verify
+    - debug: var=verify.stdout_lines
+      tags: verify
+
+
